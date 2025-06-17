@@ -1,16 +1,16 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
-import { Box, Container, Grid, useDisclosure, VStack, Heading, Button, useColorMode, Skeleton, Input, HStack, Text } from '@chakra-ui/react'
+import { Box, Container, Grid, useDisclosure, VStack, Heading, Button, useColorMode, Skeleton, Input, HStack, Text, useToast } from '@chakra-ui/react'
 import { DashboardCard } from './components/DashboardCard'
 import { DashboardForm } from './components/DashboardForm'
 import { PinAccess } from './components/PinAccess'
-import { useDashboards } from './hooks/useDashboards'
+import { useFirestoreDashboards } from './hooks/useFirestoreDashboards'
 import { Dashboard } from './types/dashboard'
 import Header from './components/Header'
 import { FiFilter } from 'react-icons/fi'
 
 function App() {
-  const { dashboards, isLoading, addDashboard, updateDashboard, removeDashboard } = useDashboards()
+  const { dashboards, isLoading, addDashboard, updateDashboard, removeDashboard, error } = useFirestoreDashboards()
   const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure()
   const { isOpen: isPinOpen, onOpen: onPinOpen, onClose: onPinClose } = useDisclosure()
   const [selectedDashboard, setSelectedDashboard] = useState<Dashboard | undefined>()
@@ -19,6 +19,7 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const { colorMode } = useColorMode()
+  const toast = useToast()
 
   // Fechar modais quando a rota mudar
   useEffect(() => {
@@ -29,6 +30,19 @@ function App() {
       setSelectedDashboard(undefined);
     }
   }, [location.pathname, onFormClose, onPinClose]);
+
+  // Mostrar erros do Firestore
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: error,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [error, toast]);
 
   // Navegação por teclado
   useEffect(() => {
